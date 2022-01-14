@@ -7,9 +7,9 @@ import "../openzeppelin-contracts/contracts/token/ERC721/IERC721Receiver.sol";
 import "../openzeppelin-contracts/contracts/math/SafeMath.sol";
 import "../openzeppelin-contracts/contracts/utils/Address.sol";
 import "../openzeppelin-contracts/contracts/utils/Counters.sol";
-import "./ERC20Token.sol";
+//import "./ERC20Token.sol";
 
-contract NFTtoken is ERC721, ERC20Token {
+contract NFTtoken is ERC721 {
     using SafeMath for uint256;
     using Address for address;
     using Counters for Counters.Counter;
@@ -40,12 +40,21 @@ contract NFTtoken is ERC721, ERC20Token {
 
     mapping(address => NFT) public nftInfo;
 
+    //ERC20Token Erc20Contract;
 
     constructor() ERC721("NC NFT example", "NCNFT") {
         owner = msg.sender;
         decimals = 0;
+        //Erc20Contract = ERC20Token(tokenAddress);
     }
 
+    function getOwner() public view returns (address) {
+        return owner;
+    } 
+
+    function getCreator() public view returns (address) {
+        return nftInfo[owner].creator;
+    }
 
     function mint(string calldata nftName) external payable {
         uint256 newItemId = _tokenIds.current();
@@ -58,13 +67,12 @@ contract NFTtoken is ERC721, ERC20Token {
         allValidTokenIds.push(newItemId);
         _tokenIds.increment();
     }
-
-    //function safeTransferFrom(address from, address to, uint256 tokenId) public virtual override {
-    //function transferFrom(address from, address to, uint256 tokenId) public virtual override {
+    /*
     function transferNFT(address from, address to, uint256 tokenId)  public returns (bool){
         transferFrom(from, to, tokenId);
-        //ERC20Token.transferFrom(to, nftInfo[from].creator, 10);
+        Erc20Contract.transferFrom(to, nftInfo[from].creator, 10);
     }
+    */
 
     function allNFTs() public view returns (uint256[] memory) {
         return allValidTokenIds;

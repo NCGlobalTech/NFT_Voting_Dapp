@@ -9,9 +9,11 @@ import { default as contract } from 'truffle-contract'
 
 import voting_artifacts from '../../build/contracts/ERC20Token.json'
 import voting_artifacts2 from '../../build/contracts/NFTtoken.json'
+import voting_artifacts3 from '../../build/contracts/NFTTrade.json'
 
 var Voting = contract(voting_artifacts);
 var NFTContract = contract(voting_artifacts2);
+var NFTTradeContract = contract(voting_artifacts3);
 
 var candidates = {};
 var NFTs = {};
@@ -25,6 +27,7 @@ window.App = {
 
   Voting.setProvider(web3.currentProvider);
   NFTContract.setProvider(web3.currentProvider);
+  NFTTradeContract.setProvider(web3.currentProvider);
   self.populateCandidates();
   self.populateNFTs();
  },
@@ -171,14 +174,23 @@ window.App = {
 },
 
 transferNFT: function() {
-  NFTContract.deployed().then(function(contractInstance) {
+  NFTTradeContract.deployed().then(function(contractInstance) {
     let toAddress = $("#to-address").val();
     //    function transferFrom(address _from, address _to, uint256 _tokenId) public payable {
     let NFTid_temp = $("#nft-id").val();
     let NFTid = NFTid_temp.substring(7);
     console.log("to = " + toAddress);
     console.log("nftid = " + NFTid);
-    contractInstance.transferNFT(web3.currentProvider.selectedAddress, toAddress, NFTid, {gas: 140000, from: web3.eth.accounts[0]});
+    /*
+  Voting.deployed().then(function(votingcontractInstance) {
+     console.log("contractInstance.address = " + contractInstance.address);
+     console.log("typeof contractInstance.address = " + typeof contractInstance.address);
+     //console.log("balanceOf = " + JSON.stringify(votingcontractInstance.balanceOf(web3.eth.accounts[0])));
+    // votingcontractInstance.approve(contractInstance.address, 10);//votingcontractInstance.balanceOf(web3.eth.accounts[0]));
+     //votingcontractInstance.balanceOf(web3.eth.accounts[1]).then(function(data) {console.log(data.toString())});
+    });
+*/
+    contractInstance.transferNFT(web3.currentProvider.selectedAddress, toAddress, NFTid, {gas: 1000000, from: web3.eth.accounts[0]});
   })
 },
 

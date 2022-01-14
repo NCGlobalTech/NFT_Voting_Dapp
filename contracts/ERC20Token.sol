@@ -145,7 +145,7 @@ function voterDetails(address user) view public returns (uint256, uint256[] memo
     // ------------------------------------------------------------------------
     function transfer(address to, uint256 tokens) public override returns (bool) {
         balances[msg.sender] = SafeMath.sub(balances[msg.sender], tokens);
-        balances[to] = SafeMath.sub(balances[to], tokens);
+        balances[to] = SafeMath.add(balances[to], tokens);
         emit Transfer(msg.sender, to, tokens);
         return true;
     }

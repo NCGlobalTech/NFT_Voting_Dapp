@@ -1,7 +1,7 @@
 // Allows us to use ES6 in our migrations and tests.
-//require('babel-register')
-//var HDWalletProvider = require("truffle-hdwallet-provider");
-//var mnemonic = "coach pole swing inflict setup embody bless mutual fork frequent sight fine"
+require('babel-register')
+var HDWalletProvider = require("truffle-hdwallet-provider");
+var mnemonic = "coach pole swing inflict setup embody bless mutual fork frequent sight fine"
 
 module.exports = {
   networks: {
