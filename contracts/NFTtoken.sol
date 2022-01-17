@@ -5,13 +5,13 @@ import "../openzeppelin-contracts/contracts/token/ERC721/IERC721.sol";
 import "../openzeppelin-contracts/contracts/token/ERC721/ERC721.sol";
 import "../openzeppelin-contracts/contracts/token/ERC721/IERC721Receiver.sol";
 import "../openzeppelin-contracts/contracts/math/SafeMath.sol";
-import "../openzeppelin-contracts/contracts/utils/Address.sol";
+//import "../openzeppelin-contracts/contracts/utils/Address.sol";
 import "../openzeppelin-contracts/contracts/utils/Counters.sol";
 //import "./ERC20Token.sol";
 
 contract NFTtoken is ERC721 {
     using SafeMath for uint256;
-    using Address for address;
+    //using Address for address;
     using Counters for Counters.Counter;
     Counters.Counter private _tokenIds;
     //bytes32[] candidates = [bytes32('Rama'), bytes32('Nick'), bytes32('Jose')];
@@ -33,7 +33,7 @@ contract NFTtoken is ERC721 {
     string[] public allNFTNames;
 
     struct NFT {
-        //uint NFTID;
+        uint256 nftId;
         string name;
         address creator;
     }
@@ -43,7 +43,6 @@ contract NFTtoken is ERC721 {
     //ERC20Token Erc20Contract;
 
     constructor() ERC721("NC NFT example", "NCNFT") {
-        owner = msg.sender;
         decimals = 0;
         //Erc20Contract = ERC20Token(tokenAddress);
     }
@@ -59,7 +58,9 @@ contract NFTtoken is ERC721 {
     function mint(string calldata nftName) external payable {
         uint256 newItemId = _tokenIds.current();
         _mint(msg.sender, newItemId);
-
+        
+        owner = msg.sender;
+        nftInfo[msg.sender].nftId = newItemId;
         nftInfo[msg.sender].name = nftName;
         nftInfo[msg.sender].creator = msg.sender;
 
@@ -67,12 +68,12 @@ contract NFTtoken is ERC721 {
         allValidTokenIds.push(newItemId);
         _tokenIds.increment();
     }
-    /*
+    
     function transferNFT(address from, address to, uint256 tokenId)  public returns (bool){
         transferFrom(from, to, tokenId);
-        Erc20Contract.transferFrom(to, nftInfo[from].creator, 10);
+        //Erc20Contract.transferFrom(to, nftInfo[from].creator, 10);
     }
-    */
+    
 
     function allNFTs() public view returns (uint256[] memory) {
         return allValidTokenIds;

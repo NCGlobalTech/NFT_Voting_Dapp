@@ -26,7 +26,7 @@ contract ERC20Token is IERC20 {
   mapping(bytes32 => uint256) public votesReceived;
 
   string public symbol;
-  string public  name;
+  string public name;
   uint8 public decimals;
 
   mapping(address => uint256) balances;
@@ -54,7 +54,7 @@ contract ERC20Token is IERC20 {
     voterInfo[msg.sender].voterAddress = msg.sender;
     voterInfo[msg.sender].tokensBought += tokensToBuy;
     balanceTokens -= tokensToBuy;
-
+    
     emit Transfer(address(0), msg.sender, tokensToBuy);
   }
 /*
@@ -133,8 +133,8 @@ function voterDetails(address user) view public returns (uint256, uint256[] memo
     // Get the token balance for account tokenOwner
     // ------------------------------------------------------------------------
     function balanceOf(address tokenOwner) public view override returns (uint256) {
-        return voterInfo[tokenOwner].tokensBought - totalTokensUsed(voterInfo[msg.sender].tokensUsedPerCandidate);
-        //return balances[tokenOwner];
+        //return voterInfo[tokenOwner].tokensBought;
+        return (voterInfo[tokenOwner].tokensBought - totalTokensUsed(voterInfo[tokenOwner].tokensUsedPerCandidate));
     }
 
 
@@ -159,7 +159,7 @@ function voterDetails(address user) view public returns (uint256, uint256[] memo
     // recommends that there are no checks for the approval double-spend attack
     // as this should be implemented in user interfaces 
     // ------------------------------------------------------------------------
-    function approve(address spender, uint256 tokens) public override returns (bool) {
+    function approve(address owner, address spender, uint256 tokens) public override returns (bool) {
         allowed[msg.sender][spender] = tokens;
         emit Approval(msg.sender, spender, tokens);
         return true;
@@ -181,6 +181,14 @@ function voterDetails(address user) view public returns (uint256, uint256[] memo
         balances[to] = SafeMath.add(balances[to], tokens);
         emit Transfer(from, to, tokens);
         return true;
+    }
+
+    function getBalances(address from) public view returns (uint256) {
+      return balances[from];
+    }
+
+    function getAllowed(address from) public view returns (uint256) {
+      return allowed[from][msg.sender];
     }
 
 

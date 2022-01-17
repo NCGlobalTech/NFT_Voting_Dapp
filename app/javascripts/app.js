@@ -6,14 +6,17 @@ import "../stylesheets/app.css";
 // Import libraries we need.
 import { default as Web3} from 'web3';
 import { default as contract } from 'truffle-contract'
+import { ethers } from "ethers";
 
-import voting_artifacts from '../../build/contracts/ERC20Token.json'
+
+import voting_artifacts from '../../build/contracts/MyERC20.json'
 import voting_artifacts2 from '../../build/contracts/NFTtoken.json'
 import voting_artifacts3 from '../../build/contracts/NFTTrade.json'
 
 var Voting = contract(voting_artifacts);
 var NFTContract = contract(voting_artifacts2);
 var NFTTradeContract = contract(voting_artifacts3);
+
 
 var candidates = {};
 var NFTs = {};
@@ -28,6 +31,11 @@ window.App = {
   Voting.setProvider(web3.currentProvider);
   NFTContract.setProvider(web3.currentProvider);
   NFTTradeContract.setProvider(web3.currentProvider);
+  web3.eth.defaultAccount=web3.eth.accounts[0];
+
+  //web3.eth.defaultAccount = web3.eth.accounts[0];
+
+
   self.populateCandidates();
   self.populateNFTs();
  },
@@ -63,7 +71,7 @@ window.App = {
       console.log("NFT Array = " + JSON.stringify(NFTs));
       self.setupNFTRows();
       //self.populateNFTIDs();
-      self.populateNFTNames();
+      //self.populateNFTNames();
       //self.populateCreators();
     })
   })
@@ -98,7 +106,7 @@ window.App = {
   }
  },
 
-
+/*
  populateNFTNames: function() {
   console.log("inside populateNFTNames")
   let NFTIDs = Object.keys(NFTs);
@@ -114,7 +122,7 @@ window.App = {
     })
   }
  },
-
+*/
  populateCreators: function() {
   let NFTIDs = Object.keys(NFTs);
   for(var i=0; i < NFTIDs.length; i++) {
@@ -155,9 +163,11 @@ window.App = {
   let price = tokensToBuy * tokenPrice;
   $("#buy-msg").html("Purchase order has been submitted. Please wait.");
   Voting.deployed().then(function(contractInstance) {
-   contractInstance.buy({value: web3.toWei(price, 'ether'), from: web3.eth.accounts[0]}).then(function(v) {
-    $("#buy-msg").html("");
-   })
+    contractInstance.buy({value: web3.toWei(price, 'ether'), from: web3.eth.accounts[0]}).then(function(v) {
+      $("#buy-msg").html("");
+    });
+    //contractInstance.approve(web3.currentProvider.selectedAddress, 500);
+    //contractInstance.transferFrom(web3.eth.accounts[0],web3.currentProvider.selectedAddress, tokensToBuy);
   });
   self.populateTokenData();
  },
@@ -174,25 +184,54 @@ window.App = {
 },
 
 transferNFT: function() {
-  NFTTradeContract.deployed().then(function(contractInstance) {
+/*
+  Voting.deployed().then(function(ERC20Instance) {
+    let buyerAddress = $("#to-address").val();
+    ERC20Instance.approve(buyerAddress, 100, {gas: 1000000, from: web3.eth.accounts[0]});
+  })
+*/
+  NFTContract.deployed().then(async function(contractInstance) {
     let toAddress = $("#to-address").val();
     //    function transferFrom(address _from, address _to, uint256 _tokenId) public payable {
     let NFTid_temp = $("#nft-id").val();
     let NFTid = NFTid_temp.substring(7);
-    console.log("to = " + toAddress);
-    console.log("nftid = " + NFTid);
-    /*
-  Voting.deployed().then(function(votingcontractInstance) {
-     console.log("contractInstance.address = " + contractInstance.address);
-     console.log("typeof contractInstance.address = " + typeof contractInstance.address);
-     //console.log("balanceOf = " + JSON.stringify(votingcontractInstance.balanceOf(web3.eth.accounts[0])));
-    // votingcontractInstance.approve(contractInstance.address, 10);//votingcontractInstance.balanceOf(web3.eth.accounts[0]));
-     //votingcontractInstance.balanceOf(web3.eth.accounts[1]).then(function(data) {console.log(data.toString())});
-    });
-*/
+    let creatorAddress = await contractInstance.getCreator();
+    //creatorAddress = contractInstance.getCreator().then(function(result) {creatorAddress = result});
+    //contractInstance.getCreator().then(function(result) {console.log("typeof result" + typeof result)});
+    console.log("typeof creatorAddress = " + typeof creatorAddress);
+    
     contractInstance.transferNFT(web3.currentProvider.selectedAddress, toAddress, NFTid, {gas: 1000000, from: web3.eth.accounts[0]});
+ 
+    Voting.deployed().then(function(ERC20Instance2) {
+      console.log("inside ERC20Instance2?");
+      let buyerAddress = $("#to-address").val();
+      //console.log(contractInstance.getCreator());
+      //contractInstance.getCreator().then(result => console.log(result));
+      
+      //let creatorAddress = contractInstance.getCreator().then(result);
+      //console.log(typeof creatorAddress);
+      //console.log(creatorAddress);
+      ERC20Instance2.approve(buyerAddress, creatorAddress, 100, {gas: 5000000, from: web3.eth.accounts[0]});
+      ERC20Instance2.transferFrom(buyerAddress, creatorAddress, 10, {gas: 1000000, from: web3.eth.accounts[0]});
+    })
+
   })
+
+
+    /*
+    Voting.deployed().then(function(ERC20Instance) {
+      let buyerAddress = $("#to-address").val();
+      ERC20Instance.approve(buyerAddress, 100, {gas: 1000000, from: web3.eth.accounts[0]});
+      ERC20Instance.transferFrom(buyerAddress, contractInstance.getCreator().then(result), 10, {gas: 1000000, from: web3.eth.accounts[0]});
+    })
+    */
 },
+
+/* Voting.deployed().then(function(ERC20Instance) {
+      let buyerAddress = $("#to-address").val();
+      ERC20Instance.approve(buyerAddress, 100, {gas: 1000000, from: web3.eth.accounts[0]});
+      ERC20Instance.transferFrom(buyerAddress, contractInstance.getCreator().then(result), 10, {gas: 1000000, from: web3.eth.accounts[0]});
+    }) */
 
   /*
   const screenshotTarget = document.getElementById("candidate-rows");
@@ -221,22 +260,40 @@ transferNFT: function() {
  },
 
  lookupVoterInfo: function() {
-   let voterAddress = $("#voter-info").val();
+  let toAddress = $("#voter-info").val().trim();
+  Voting.deployed().then(function(contractInstance) {
+    console.log("web3.currentProvider.selectedAddress = " + web3.currentProvider.selectedAddress);
+    console.log("toAddress = " + toAddress);
+    console.log("typeof toAdress = " + typeof toAddress)
+    //contractInstance.approve(web3.currentProvider.selectedAddress, 100, {gas: 1000000, from: web3.eth.accounts[0]}).then(result => console.log(result.toString()));
+    //contractInstance.allowance(web3.currentProvider.selectedAddress, toAddress).then(result => console.log(result.toString()));
+    //console.log("here?");
+    contractInstance.approve(web3.currentProvider.selectedAddress, 100, {gas: 1000000, from: web3.eth.accounts[0]});
+    contractInstance.transferFrom(web3.currentProvider.selectedAddress, toAddress, 10, {gas: 1000000, from: web3.eth.accounts[0]});
+    //contractInstance.transferFrom(web3.currentProvider.selectedAddress, toAddress, 10);
+    //contractInstance.transfer(toAddress, 10, {gas: 1000000, from: web3.eth.accounts[0]});
+  })
+ }
+
+/*
+  let voterAddress = $("#voter-info").val();
    $("#voter-info").val("");
 
    Voting.deployed().then(function(contractInstance) {
-    contractInstance.voterDetails(voterAddress/*, {gas: 140000, from: web3.eth.accounts[0]}*/).then(function(v) {
+    contractInstance.voterDetails(voterAddress).then(function(v) {
       $("#tokens-bought").html("NC Tokens bought:" + v[0].toString());
       $("#votes-cast").html("votes-cast [Rama, Nick, Jose]:" + v[1].toString());
     })
    });
  }
+*/
 };
 
 window.addEventListener('load', async function() {
  if (window.ethereum) {
    await window.ethereum.send('eth_requestAccounts');
    window.web3 = new Web3(window.ethereum);
+   
  }
  else {
   console.warn("No web3 detected. Falling back to http://127.0.0.1:9545. You should remove this fallback when you deploy live, as it's inherently insecure. Consider switching to Metamask for development. More info here: http://truffleframework.com/tutorials/truffle-and-metamask");
